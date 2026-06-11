@@ -7,8 +7,29 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:#1a0f00;display:flex;justify-content:center;font-family:'Pretendard',sans-serif;}
-#game{width:380px;height:700px;position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;}
+body{
+  background:#1a0f00;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  min-height:100dvh;
+  font-family:'Pretendard',sans-serif;
+  margin:0;
+}
+#game{
+  /* Scale to fill viewport while keeping 380:700 ratio */
+  width:380px;
+  height:700px;
+  position:relative;
+  overflow:hidden;
+  user-select:none;-webkit-user-select:none;
+  transform-origin:center center;
+  /* JS will set scale via --scale */
+  transform:scale(var(--scale,1));
+  /* So scaled element still takes correct space: */
+  margin: calc((700px * (var(--scale,1) - 1)) / 2) calc((380px * (var(--scale,1) - 1)) / 2);
+}
 #bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;z-index:0;}
 #overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,0.12) 0%,rgba(0,0,0,0) 22%,rgba(6,3,0,0.42) 68%,rgba(5,2,0,0.9) 100%);}
 #confetti-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:15;opacity:0;}
@@ -288,4 +309,31 @@ function startFW(id){
 function spawnHat(x,y){var el=document.createElement('div');el.className='hat-burst';el.textContent='\uD83E\uDD20';el.style.cssText='position:absolute;left:'+x+'px;top:'+y+'px;';closetWrap.appendChild(el);setTimeout(function(){el.remove();},680);}
 function spawnRipple(x,y){var el=document.createElement('div');el.className='ripple';var s=28;el.style.cssText='position:absolute;width:'+s+'px;height:'+s+'px;left:'+(x-s/2)+'px;top:'+(y-s/2)+'px;';closetWrap.appendChild(el);setTimeout(function(){el.remove();},520);}
 function doShake(){closetWrap.classList.remove('shaking');void closetWrap.offsetWidth;closetWrap.classList.add('shaking');setTimeout(function(){closetWrap.classList.remove('shaking');},140);}
-</script></body></html>
+</script>
+<script>
+(function(){
+  function scaleGame(){
+    var vw = window.innerWidth;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    // dvh fallback
+    try{ vh = window.visualViewport ? window.visualViewport.height : vh; } catch(e){}
+    var scaleX = vw / 380;
+    var scaleY = vh / 700;
+    var scale = Math.min(scaleX, scaleY, 1); // never upscale beyond 1 on desktop
+    // on small screens allow upscale too
+    scale = Math.min(scaleX, scaleY);
+    var game = document.getElementById('game');
+    game.style.setProperty('--scale', scale);
+    // margin trick to keep it centered in flow
+    var mh = (700 * (scale - 1)) / 2;
+    var mw = (380 * (scale - 1)) / 2;
+    game.style.margin = mh + 'px ' + mw + 'px';
+  }
+  window.addEventListener('resize', scaleGame);
+  window.addEventListener('orientationchange', function(){ setTimeout(scaleGame, 100); });
+  if(window.visualViewport) window.visualViewport.addEventListener('resize', scaleGame);
+  document.addEventListener('DOMContentLoaded', scaleGame);
+  window.addEventListener('load', scaleGame);
+})();
+</script>
+</body></html>
